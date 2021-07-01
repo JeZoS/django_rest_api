@@ -17,23 +17,38 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 
-class ArticleViewSet(viewsets.ViewSet):
-    def list(self,request):
+# generic viewsets
+class ArticleViewSetss(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin):
+    serializer_class = ArticleSerializer
+    queryset = Article.objects.all()
+
+
+class ArticleViewSet(viewsets.ModelViewSet):
+    serializer_class = ArticleSerializer
+    queryset = Article.objects.all()
+
+
+# viewsets
+class ArticleViewSets(viewsets.ViewSet):
+    def list(self, request):
         articles = Article.objects.all()
         serializer = ArticleSerializer(articles, many=True)
         return Response(serializer.data)
-    def create(self,request):
+
+    def create(self, request):
         serializer = ArticleSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    def retrieve(self,request,pk=None):
+
+    def retrieve(self, request, pk=None):
         queryset = Article.objects.all()
-        article = get_object_or_404(queryset,pk=pk)
+        article = get_object_or_404(queryset, pk=pk)
         serializer = ArticleSerializer(article)
         return Response(serializer.data)
-    def update(self,request,pk=None):
+
+    def update(self, request, pk=None):
         article = Article.objects.get(pk=pk)
         serializer = ArticleSerializer(article, data=request.data)
         if serializer.is_valid():
@@ -52,9 +67,9 @@ class GenericAPIView(generics.GenericAPIView, mixins.DestroyModelMixin, mixins.L
     lookup_field = 'id'
 
     # authentication_classes = [SessionAuthentication,BasicAuthentication]
-    authentication_classes = [TokenAuthentication]
+    # authentication_classes = [TokenAuthentication]
 
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request, id=None):
         if id:
@@ -72,6 +87,8 @@ class GenericAPIView(generics.GenericAPIView, mixins.DestroyModelMixin, mixins.L
         return self.destroy(request, id)
 
 
+
+
 # classes
 class ArticleAPIView(APIView):
     def get(self, request):
@@ -86,6 +103,8 @@ class ArticleAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class ArticleDetails(APIView):
@@ -112,6 +131,8 @@ class ArticleDetails(APIView):
         article = self.get_object(id)
         article.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 
 
 # functions
